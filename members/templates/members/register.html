@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <h2 class="text-2xl font-bold mb-4 text-center">Register</h2>
+
+    <!-- Display messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="text-white text-center py-2 rounded {{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Registration Form -->
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Name Input -->
+        <div class="mb-4">
+            <label for="Name" class="block text-sm font-bold text-gray-700">Name</label>
+            <input type="text" name="Name" id="Name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+
+        <!-- Email Input -->
+        <div class="mb-4">
+            <label for="Email" class="block text-sm font-bold text-gray-700">Email</label>
+            <input type="email" name="Email" id="Email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+
+        <!-- Password Input -->
+        <div class="mb-4">
+            <label for="Password" class="block text-sm font-bold text-gray-700">Password</label>
+            <input type="password" name="Password" id="Password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+        </div>
+
+        <!-- Contact Number Input -->
+        <div class="mb-4">
+            <label for="ContactNumber" class="block text-sm font-bold text-gray-700">Contact Number</label>
+            <input type="text" name="ContactNumber" id="ContactNumber" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <!-- Address Input -->
+        <div class="mb-4">
+            <label for="Address" class="block text-sm font-bold text-gray-700">Address</label>
+            <input type="text" name="Address" id="Address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <!-- Company Input -->
+        <div class="mb-4">
+            <label for="Company" class="block text-sm font-bold text-gray-700">Company</label>
+            <input type="text" name="Company" id="Company" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <!-- GST Input -->
+        <div class="mb-4">
+            <label for="GST" class="block text-sm font-bold text-gray-700">GST</label>
+            <input type="text" name="GST" id="GST" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <!-- Membership ID Input -->
+        <div class="mb-4">
+            <label for="MembershipID" class="block text-sm font-bold text-gray-700">Membership ID</label>
+            <input type="number" name="MembershipID" id="MembershipID" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <!-- Aadhar ID Input -->
+        <div class="mb-4">
+            <label for="AadharID" class="block text-sm font-bold text-gray-700">Aadhar ID</label>
+            <input type="text" name="AadharID" id="AadharID" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex justify-center mt-4">
+            <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Register
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

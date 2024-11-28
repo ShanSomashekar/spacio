@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <h1 class="text-3xl font-bold text-center mb-6">Available Coworking Spaces</h1>
+
+    <!-- Sorting Options -->
+    <div class="mb-6 flex justify-between items-center">
+        <form method="GET" class="flex space-x-4">
+            <select name="sort_by" class="border px-4 py-2 rounded">
+                <option value="HourlyPrice" {% if sort_by == "HourlyPrice" %}selected{% endif %}>Hourly Price</option>
+                <option value="DailyPrice" {% if sort_by == "DailyPrice" %}selected{% endif %}>Daily Price</option>
+                <option value="MonthlyPrice" {% if sort_by == "MonthlyPrice" %}selected{% endif %}>Monthly Price</option>
+            </select>
+            <select name="sort_order" class="border px-4 py-2 rounded">
+                <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>Ascending</option>
+                <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>Descending</option>
+            </select>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Sort</button>
+        </form>
+    </div>
+
+    <!-- List of Spaces -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for space in spaces %}
+        <div class="bg-white shadow-md rounded p-6">
+            <h2 class="text-xl font-bold mb-2">{{ space.1 }}</h2>
+            <p><strong>Hourly Price:</strong> ${{ space.2 }}</p>
+            <p><strong>Daily Price:</strong> ${{ space.3 }}</p>
+            <p><strong>Monthly Price:</strong> ${{ space.4 }}</p>
+            <p><strong>Status:</strong> {{ space.5 }}</p>
+            <form method="POST" action="{% url 'book_space' %}">
+                {% csrf_token %}
+                <input type="hidden" name="space_id" value="{{ space.0 }}">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4">
+                    Book Now
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

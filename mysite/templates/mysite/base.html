@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spacio Workspace Management</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white py-4">
+        <div class="container mx-auto flex justify-between items-center px-6">
+            <a href="/" class="text-2xl font-bold">Spacio Workspace</a>
+            <div class="space-x-6 flex items-center">
+                <a href="/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Home</a>
+                <a href="/spaces/list/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Spaces</a>
+                <a href="/bookings/list/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Bookings</a>
+                {% if user.is_authenticated %}
+                    <span class="font-bold hidden md:inline-block">Welcome, {{ user.first_name }}!</span>
+                    <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-md">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Login</a>
+                    <a href="{% url 'register' %}" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 flex-grow">
+        <!-- Content block for child templates -->
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-600 text-white text-center py-4">
+        <p>&copy; 2024 Spacio Workspace. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>

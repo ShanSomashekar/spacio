@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Spacio Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-indigo-600 text-white py-4">
+        <div class="container mx-auto flex justify-between items-center px-6">
+            <a href="/" class="text-2xl font-bold">Spacio Workspace</a>
+            <div class="space-x-6">
+                <a href="/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Home</a>
+                <a href="/accounts/login/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto py-8">
+        <div class="max-w-md mx-auto p-6 bg-white shadow-md rounded-md">
+            <h2 class="text-2xl font-bold mb-4">Register</h2>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="w-full py-2 px-4 bg-indigo-600 text-white rounded-md mt-4">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-indigo-600 text-white text-center py-4">
+        <p>&copy; 2024 Spacio Workspace. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>
