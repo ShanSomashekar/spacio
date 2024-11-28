@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Tables</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-indigo-600 text-white py-4">
+        <div class="container mx-auto flex justify-between items-center px-6">
+            <a href="/" class="text-2xl font-bold">Spacio Workspace</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto py-8">
+        <h2 class="text-3xl font-semibold text-center text-indigo-700 mb-8">Database Tables</h2>
+
+        <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+            <table class="min-w-full table-auto">
+                <thead>
+                    <tr class="bg-indigo-600 text-white">
+                        <th class="px-6 py-4 text-left">Table Name</th>
+                        <th class="px-6 py-4 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for table in tables %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">{{ table }}</td>
+                        <td class="px-6 py-4">
+                            <a href="{% url 'list_records' table %}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition">
+                                Manage Table
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="bg-indigo-600 text-white text-center py-4">
+        <p>&copy; 2024 Spacio Workspace. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>

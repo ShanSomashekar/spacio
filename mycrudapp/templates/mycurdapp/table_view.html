@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage {{ table_name }} - My Django App{% endblock %}
+
+{% block content %}
+<h2>Manage Records in {{ table_name }}</h2>
+<a href="{% url 'add_record' table_name %}">Add New Record</a>
+<table>
+    <thead>
+        <tr>
+            {% for column in columns %}
+            <th>{{ column }}</th>
+            {% endfor %}
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            {% for value in row %}
+            <td>{{ value }}</td>
+            {% endfor %}
+            <td>
+                <a href="{% url 'edit_record' table_name pk=row.0 %}">Edit</a> |
+                <a href="{% url 'confirm_delete' table_name pk=row.0 %}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

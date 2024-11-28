@@ -2,8 +2,7 @@
 
 {% block content %}
 <div class="container mx-auto py-8">
-    <div class="max-w-4xl mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8">
-        <!-- Welcome Section -->
+    <div class="max-w-2xl mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h1 class="text-3xl font-bold text-center mb-4">Welcome, {{ member.Name }}!</h1>
         <p class="text-gray-700 text-center mb-4">You are logged in as <strong>{{ member.Email }}</strong>.</p>
 
@@ -11,49 +10,31 @@
         <h2 class="text-2xl font-bold mt-8 mb-4">Your Bookings</h2>
         <div class="mb-4">
             {% if bookings %}
-                <ul class="divide-y divide-gray-200">
+                <ul>
                     {% for booking in bookings %}
-                        <li class="py-4">
-                            <p><strong>Space:</strong> {{ booking.2 }} <br>
-                               <strong>From:</strong> {{ booking.3 }} <strong>To:</strong> {{ booking.4 }} <br>
-                               <strong>Status:</strong> {{ booking.5 }}</p>
+                        <li class="mb-4">
+                            <div class="font-bold text-lg">{{ booking.1 }}</div>  <!-- Space Name -->
+                            <p><strong>From:</strong> {{ booking.2 }} <strong>To:</strong> {{ booking.3 }}<br>
+                               <strong>Status:</strong> {{ booking.4 }}</p>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="text-gray-500">You have no current bookings.</p>
+                <p>No bookings found.</p>
             {% endif %}
         </div>
 
-        <!-- Browse Spaces Section -->
+        <!-- Create New Booking Section -->
         <div class="flex justify-center mt-6">
-            <a href="{% url 'coworking_spaces' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Browse and Book Spaces
+            <a href="{% url 'create_booking' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Create New Booking
             </a>
         </div>
 
-        <!-- Invoices Section -->
-        <h2 class="text-2xl font-bold mt-8 mb-4">Your Invoices</h2>
-        <div class="mb-4">
-            {% if invoices %}
-                <ul class="divide-y divide-gray-200">
-                    {% for invoice in invoices %}
-                        <li class="py-4">
-                            <p><strong>Invoice Amount:</strong> ${{ invoice.2 }} <br>
-                               <strong>Status:</strong> {{ invoice.4 }} <br>
-                               <strong>Issued On:</strong> {{ invoice.3 }}</p>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-500">You have no invoices at the moment.</p>
-            {% endif %}
-        </div>
-
-        <!-- Logout Button -->
+        <!-- Logout Section -->
         <div class="flex justify-center mt-6">
             <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                Logout
+                Log Out
             </a>
         </div>
     </div>

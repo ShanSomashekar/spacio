@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="text-3xl font-bold mb-8 text-indigo-700">Welcome to Spacio Workspace Management</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for table in tables %}
+            <a href="{{ table }}/list_record/" class="bg-indigo-600 text-white py-4 px-6 rounded-lg shadow-lg hover:bg-indigo-700 transition">
+                Manage {{ table }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

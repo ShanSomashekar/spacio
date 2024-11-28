@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Record - {{ table_name }}{% endblock %}
+
+{% block content %}
+<h2>Edit Record in {{ table_name }}</h2>
+<form method="POST">
+    {% csrf_token %}
+    {% for column, value in record %}
+    <label for="{{ column }}">{{ column }}</label>
+    <input type="text" name="{{ column }}" id="{{ column }}" value="{{ value }}" required>
+    {% endfor %}
+    <button type="submit">Save Changes</button>
+</form>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>{% if obj %}Edit{% else %}Add{% endif %} {{ table_name|capfirst }} Record</h2>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+  </form>
+  {% if obj %}
+    <a href="{% url 'view_table' table_name=table_name %}">Back to list</a>
+  {% else %}
+    <a href="{% url 'view_table' table_name=table_name %}">Back to list</a>
+  {% endif %}
+{% endblock %}
