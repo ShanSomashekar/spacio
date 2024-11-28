@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Record - {{ table_name }}{% endblock %}
+
+{% block content %}
+<h2>Add New Record to {{ table_name }}</h2>
+<form method="POST">
+    {% csrf_token %}
+    {% for column in columns %}
+    <label for="{{ column }}">{{ column }}</label>
+    <input type="text" name="{{ column }}" id="{{ column }}" required>
+    {% endfor %}
+    <button type="submit">Add Record</button>
+</form>
+{% endblock %}

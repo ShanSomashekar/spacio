@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-semibold mb-4">Records of {{ table_name }}</h1>
+
+    <!-- Add Button -->
+    <div class="mb-4 flex justify-end">
+        <a href="{% url 'add_record' table_name=table_name %}"
+           class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition">
+            Add New {{ table_name }}
+        </a>
+    </div>
+
+    <!-- Table -->
+    <table class="min-w-full bg-white border border-gray-300 shadow-md rounded-lg">
+        <thead>
+            <tr class="bg-gray-100">
+                {% for column in columns %}
+                <th class="px-6 py-3 text-left text-gray-700 font-semibold">
+                    {{ column }}
+                </th>
+                {% endfor %}
+                <th class="px-6 py-3 text-left text-gray-700 font-semibold">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for row in rows %}
+            <tr class="hover:bg-gray-50 transition">
+                {% for column in columns %}
+                <td class="px-6 py-4">
+                    {{ row|get_item:column }}
+                </td>
+                {% endfor %}
+                <td class="px-6 py-4 flex space-x-2">
+                    <!-- Edit Link -->
+                    <a href="{% url 'edit_record' table_name=table_name id=row|get_item:primary_key_column %}"
+                       class="bg-yellow-500 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-600 transition">
+                        Edit
+                    </a>
+
+                    <!-- Delete Link -->
+                    <a href="{% url 'delete_record' table_name=table_name id=row|get_item:primary_key_column %}"
+                       class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination (optional, if needed) -->
+    <div class="mt-4 flex justify-between">
+        <div>
+            <p class="text-sm text-gray-700">
+                Showing {{ rows|length }} out of {{ total_records }} records.
+            </p>
+        </div>
+        <div>
+            {% if has_next %}
+            <a href="?page={{ next_page }}" class="text-blue-600 hover:underline">Next</a>
+            {% endif %}
+            {% if has_previous %}
+            <a href="?page={{ previous_page }}" class="text-blue-600 hover:underline">Previous</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
