@@ -80,16 +80,6 @@ from django.shortcuts import render, redirect
 from .models import Member
 
 
-from django.shortcuts import render, redirect
-from django.db import connection
-from django.contrib import messages
-from datetime import datetime
-
-from django.shortcuts import render, redirect
-from django.db import connection
-from django.contrib import messages
-from datetime import datetime
-
 def home_view(request):
     if 'user' in request.session:
         member_id = request.session['user']
@@ -116,7 +106,6 @@ def home_view(request):
             return redirect('login')
     else:
         return redirect('login')
-
 
 
 from django.contrib.auth import logout
@@ -158,80 +147,20 @@ from django.shortcuts import render, redirect
 from django.db import connection
 from django.contrib import messages
 
-
 def create_booking(request):
-    if 'user' not in request.session:
         return redirect('login')
 
-    member_id = request.session['user']
-
-    try:
-        # Fetch member details
-        member = Member.objects.get(MemberID=member_id)
-
-        # Get selected space ID from query parameters
-        space_id = request.GET.get('space_id')
-
-        if not space_id:
-            return redirect('coworking_space')  # If no space is selected, redirect back to coworking space
-
-        # Fetch selected space details
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT Name, HourlyPrice, DailyPrice, MonthlyPrice
-                FROM Spaces
-                WHERE SpaceID = %s
-            """, [space_id])
-            space = cursor.fetchone()
 
-        if request.method == 'POST':
-            start_time = request.POST['start_time']
-            end_time = request.POST['end_time']
 
-            try:
-                # Convert start_time and end_time from string to datetime object
-                start_time = datetime.strptime(start_time, '%Y-%m-%d %H:%M')
-                end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M')
-
-                # Create a new booking
                 with connection.cursor() as cursor:
-                    cursor.execute("""
-                        INSERT INTO Bookings (SpaceID, MemberID, StartTime, EndTime, Status)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, [space_id, member_id, start_time, end_time, 'Booked'])
 
-                # Update Space occupation status
-                with connection.cursor() as cursor:
-                    cursor.execute("""
-                        UPDATE Spaces
-                        SET OccupationStatus = 'Booked'
-                        WHERE SpaceID = %s
-                    """, [space_id])
-
-                # Redirect to the home page after booking
-                return redirect('home')
-
-            except Exception as e:
-                print(f"Error booking space: {e}")
-                return render(request, 'members/create_booking.html', {
-                    'member': member,
-                    'space': space,
-                    'error_message': f"Error occurred: {str(e)}"
-                })
-
-        return render(request, 'members/create_booking.html', {
-            'member': member,
-            'space': space,  # Pass the selected space details
-        })
-
-    except Member.DoesNotExist:
-        return redirect('login')
 
 from django.shortcuts import render, redirect
 from django.db import connection
 from django.contrib import messages
 
-def coworking_space(request):
     sort_by = request.GET.get('sort_by', 'hourly_price')  # Default sorting by hourly price
     sort_order = request.GET.get('sort_order', 'asc')  # Default ascending order
 
@@ -257,8 +186,6 @@ def coworking_space(request):
     })
 from django.http import HttpResponseRedirect
 
-
-
 from datetime import datetime
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -279,7 +206,6 @@ def book_space(request):
             return redirect('book_space')  # Redirect back to the booking page
 
         try:
-            # Combine date and time into datetime objects
             start_datetime = datetime.strptime(f"{start_date} {start_time}", "%Y-%m-%d %H:%M")
             end_datetime = datetime.strptime(f"{end_date} {end_time}", "%Y-%m-%d %H:%M")
 
@@ -302,8 +228,6 @@ def book_space(request):
                 WHERE SpaceID = %s
                 AND Status = 'Booked'
                 AND (
-                    (StartTime <= %s AND EndTime > %s) OR
-                    (StartTime < %s AND EndTime >= %s)
                 )
             """, [space_id, start_datetime, start_datetime, end_datetime, end_datetime])
             count = cursor.fetchone()[0]
@@ -315,7 +239,6 @@ def book_space(request):
             # Proceed with booking the space
             try:
                 cursor.execute("""
-                    INSERT INTO Bookings (MemberID, SpaceID, StartTime, EndTime, Status)
                     VALUES (%s, %s, %s, %s, 'Booked')
                 """, [member_id, space_id, start_datetime, end_datetime])
 
@@ -335,7 +258,6 @@ def book_space(request):
     # Get available spaces to display on the booking page
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT s.SpaceID, s.Name, p.hourly_price,  p.monthly_price, s.OccupationStatus
             FROM Spaces s
             JOIN price p ON s.SpaceID = p.SpaceID
             WHERE s.OccupationStatus = 'Available'
