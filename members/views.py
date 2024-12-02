@@ -141,7 +141,7 @@ from django.shortcuts import redirect
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('members:login')
 
 from django.contrib.auth.decorators import login_required
 
