@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col justify-center items-center bg-gray-100">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-md w-full text-center">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">Welcome to Spacio</h1>
+        <p class="text-gray-600 mb-8">Please choose your role to log in:</p>
+        
+        <!-- Member Login Button -->
+        <a href="{% url 'member_login' %}" class="block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg mb-4">
+            Member Login
+        </a>
+
+        <!-- Employee Login Button -->
+        <a href="{% url 'employee_login' %}" class="block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg">
+            Employee Login
+        </a>
+    </div>
+</div>
+{% endblock %}

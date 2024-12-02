@@ -31,6 +31,8 @@ urlpatterns = [
     path('members/', include('members.urls')),
 
     path('employee/', include('employee.urls')),
+path('', include('home.urls')),
+
 ]
 
 if settings.DEBUG:

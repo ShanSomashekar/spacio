@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "view.templatetags",
     "members",
     "employee",
+    "home",
 
 
 ]

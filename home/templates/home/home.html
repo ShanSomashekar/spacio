@@ -1,0 +1,18 @@
+<!-- home/templates/home/home.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg px-8 pt-6 pb-8">
+        <h1 class="text-3xl font-bold text-center mb-4">Welcome to the Spacio Workspace</h1>
+        <p class="text-gray-700 text-center mb-4">Choose your login type:</p>
+
+        <!-- Member and Employee Login Buttons -->
+        <div class="flex justify-center">
+            <a href="{% url 'login' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mx-2">Member Login</a>
+            <a href="{% url 'employee:employee_login' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mx-2">Employee Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -57,6 +57,11 @@ from django.db import connection
 import hashlib
 
 
+from django.shortcuts import redirect
+from django.contrib import messages
+import hashlib
+from django.db import connection
+
 def employee_login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -77,12 +82,13 @@ def employee_login(request):
                 # Compare the provided password with the TempPassword
                 if password == temp_password:
                     # If the password matches the TempPassword, log the user in
-                    request.session['user_id'] = user_id  # Store user_id in session
+                    request.session['employee_id'] = user_id  # Store employee_id in session
+                    request.session['must_change_password'] = True  # Set password change flag
                     messages.info(request, "You need to change your password.")
 
-                    # Get the 'next' parameter to redirect to the correct page after login
+                    # Redirect to change password page
                     next_url = request.GET.get('next', '/employee/change_password/')
-                    return redirect(next_url)  # Redirect to change password page
+                    return redirect(next_url)
                 else:
                     messages.error(request, "Incorrect temporary password.")
             else:
@@ -92,10 +98,12 @@ def employee_login(request):
 
                 if password_hash_check == password_hash:
                     # If password is correct, log the user in
-                    request.session['user_id'] = user_id  # Store user_id in session
+                    request.session['employee_id'] = user_id  # Store employee_id in session
+                    request.session['must_change_password'] = False  # Password changed, no need to enforce
+
                     messages.success(request, f"Welcome back, {name}!")
 
-                    # Get the 'next' parameter to redirect after successful login
+                    # Redirect to dashboard or the 'next' URL if provided
                     next_url = request.GET.get('next', '/employee/dashboard/')  # Default to dashboard
                     return redirect(next_url)
                 else:
@@ -184,122 +192,163 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 # @login_required(login_url=settings.LOGIN_URL_EMPLOYEES)
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db import connection
-from django.contrib.auth.decorators import login_required
-from datetime import datetime
+from django.contrib import messages
 
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.db import connection
 
+from django.shortcuts import render, redirect
+from django.db import connection
+from datetime import date, timedelta
+
+from datetime import datetime
+from django.shortcuts import render, redirect
+from django.db import connection
+
+from datetime import datetime
+from django.shortcuts import render, redirect
+from django.db import connection
+
+from datetime import datetime
+from django.shortcuts import render, redirect
+from django.db import connection
 
 def employee_dashboard(request):
-    # Get the logged-in user's ID
-    user_id = request.user.id
+    employee_id = request.session.get('employee_id')
+    if not employee_id:
+        return redirect('/employee/login/?next=/employee/dashboard/')
 
-    # 1. Get employee-specific data using raw SQL
+    # Fetch employee details
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT FirstName, LastName, Email, Position
-            FROM Employees
+            SELECT FirstName, LastName, Email 
+            FROM Employees 
             WHERE EmployeeID = %s
-        """, [user_id])
-        employee_data = cursor.fetchone()
+        """, [employee_id])
+        employee = cursor.fetchone()
 
-    if not employee_data:
-        # If no employee data found for the user, redirect to login or error page
-        return redirect('login')
+    if not employee:
+        return redirect('/employee/login/?next=/employee/dashboard/')
 
-    employee = {
-        'first_name': employee_data[0],
-        'last_name': employee_data[1],
-        'email': employee_data[2],
-        'position': employee_data[3]
+    employee_data = {
+        'first_name': employee[0],
+        'last_name': employee[1],
+        'email': employee[2],
     }
 
-    # 2. Get the spaces booked for today
+    today = datetime.today().date()
+
+    # Fetch spaces in use today and not in use today
+    spaces_in_use_today = []
+    spaces_not_in_use_today = []
+
+    # Fetch today's bookings
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT s.name, b.start_time, b.end_time, b.status
-            FROM bookings b
-            JOIN spaces s ON b.space_id = s.id
-            WHERE b.start_time >= CURDATE() AND b.start_time < CURDATE() + INTERVAL 1 DAY
+            SELECT s.Name, b.StartTime, b.EndTime, b.Status, b.SpaceID
+            FROM Bookings b
+            JOIN Spaces s ON b.SpaceID = s.SpaceID
+            WHERE DATE(b.StartTime) = CURDATE()
         """)
         todays_bookings = cursor.fetchall()
 
-    # 3. Get the total revenue and revenue breakdown by space
+        # Get all space IDs that are booked today
+        booked_space_ids = [booking[4] for booking in todays_bookings]
+
+    # Fetch all spaces
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT SUM(i.amount) AS total_revenue
-            FROM invoices i
-            JOIN bookings b ON i.booking_id = b.id
-            WHERE i.issue_date >= CURDATE() AND i.issue_date < CURDATE() + INTERVAL 1 DAY
+            SELECT SpaceID, Name 
+            FROM Spaces
         """)
-        total_revenue = cursor.fetchone()[0]
+        all_spaces = cursor.fetchall()
 
-        cursor.execute("""
-            SELECT s.name, SUM(i.amount) AS revenue
-            FROM invoices i
-            JOIN bookings b ON i.booking_id = b.id
-            JOIN spaces s ON b.space_id = s.id
-            WHERE i.issue_date >= CURDATE() AND i.issue_date < CURDATE() + INTERVAL 1 DAY
-            GROUP BY s.name
-        """)
-        revenue_by_space = cursor.fetchall()
+    # Separate spaces into those in use today and those not in use
+    for space in all_spaces:
+        if space[0] in booked_space_ids:
+            spaces_in_use_today.append(space[1])
+        else:
+            spaces_not_in_use_today.append(space[1])
 
-    # 4. Get active members for this month
+    # Fetch total revenue for today
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT COUNT(DISTINCT b.member_id)
-            FROM bookings b
-            WHERE b.start_time >= CURDATE() - INTERVAL 1 MONTH
+            SELECT SUM(Amount) 
+            FROM Invoices
+            WHERE DATE(IssueDate) = CURDATE()
         """)
-        active_members = cursor.fetchone()[0]
+        total_revenue = cursor.fetchone()[0] or 0
 
-    # 5. Get member retention (new vs returning)
+    # Fetch total revenue for the current month
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT 
-                COUNT(DISTINCT CASE WHEN b.start_time <= CURDATE() - INTERVAL 1 MONTH THEN b.member_id END) AS new_members,
-                COUNT(DISTINCT CASE WHEN b.start_time > CURDATE() - INTERVAL 1 MONTH THEN b.member_id END) AS returning_members
-            FROM bookings b
-            WHERE b.start_time >= CURDATE() - INTERVAL 1 YEAR
+            SELECT SUM(Amount)
+            FROM Invoices
+            WHERE YEAR(IssueDate) = YEAR(CURDATE()) AND MONTH(IssueDate) = MONTH(CURDATE())
         """)
-        member_retention = cursor.fetchone()
+        monthly_revenue = cursor.fetchone()[0] or 0
 
-    # 6. Get booking trends (bookings per day)
+    # Fetch total revenue for the current quarter
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT DATE(b.start_time) AS date, COUNT(b.id) AS bookings_count
-            FROM bookings b
-            WHERE b.start_time >= CURDATE() - INTERVAL 1 MONTH
-            GROUP BY DATE(b.start_time)
-            ORDER BY DATE(b.start_time)
+            SELECT SUM(Amount)
+            FROM Invoices
+            WHERE YEAR(IssueDate) = YEAR(CURDATE()) AND QUARTER(IssueDate) = QUARTER(CURDATE())
         """)
-        booking_trends = cursor.fetchall()
+        quarterly_revenue = cursor.fetchone()[0] or 0
 
-    # 7. Get invoice status (paid vs unpaid)
+    # Fetch total revenue for the current year
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT 
-                SUM(CASE WHEN i.status = 'Paid' THEN i.amount ELSE 0 END) AS paid_revenue,
-                SUM(CASE WHEN i.status = 'Unpaid' THEN i.amount ELSE 0 END) AS unpaid_revenue
-            FROM invoices i
-            WHERE i.issue_date >= CURDATE() - INTERVAL 1 MONTH
+            SELECT SUM(Amount)
+            FROM Invoices
+            WHERE YEAR(IssueDate) = YEAR(CURDATE())
         """)
-        invoice_status = cursor.fetchone()
+        yearly_revenue = cursor.fetchone()[0] or 0
 
-    # Context for rendering
+    # Fetch payment status (Paid vs Unpaid)
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT SUM(Amount)
+            FROM Invoices
+            WHERE Status = 'Paid' AND YEAR(IssueDate) = YEAR(CURDATE())
+        """)
+        paid_revenue = cursor.fetchone()[0] or 0
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT SUM(Amount)
+            FROM Invoices
+            WHERE Status = 'Unpaid' AND YEAR(IssueDate) = YEAR(CURDATE())
+        """)
+        unpaid_revenue = cursor.fetchone()[0] or 0
+
+    # Revenue per Space Type (for the current month)
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT s.Type, SUM(i.Amount)
+            FROM Invoices i
+            JOIN Bookings b ON i.BookingID = b.BookingID
+            JOIN Spaces s ON b.SpaceID = s.SpaceID
+            WHERE MONTH(i.IssueDate) = MONTH(CURDATE()) AND YEAR(i.IssueDate) = YEAR(CURDATE())
+            GROUP BY s.Type
+        """)
+        revenue_by_space_type = cursor.fetchall()
+
     context = {
-        'employee': employee,
+        'employee': employee_data,
         'todays_bookings': todays_bookings,
         'total_revenue': total_revenue,
-        'revenue_by_space': revenue_by_space,
-        'active_members': active_members,
-        'member_retention': member_retention,
-        'booking_trends': booking_trends,
-        'invoice_status': invoice_status,
+        'monthly_revenue': monthly_revenue,
+        'quarterly_revenue': quarterly_revenue,
+        'yearly_revenue': yearly_revenue,
+        'paid_revenue': paid_revenue,
+        'unpaid_revenue': unpaid_revenue,
+        'revenue_by_space_type': revenue_by_space_type,
+        'spaces_in_use_today': spaces_in_use_today,
+        'spaces_not_in_use_today': spaces_not_in_use_today,
     }
 
     return render(request, 'employee/employee_dashboard.html', context)

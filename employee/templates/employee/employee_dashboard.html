@@ -1,54 +1,128 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <h2>Welcome to Your Dashboard, {{ employee.first_name }}!</h2>
+<div class="container mx-auto py-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg px-8 pt-6 pb-8">
+        <h1 class="text-3xl font-bold text-center mb-4">Welcome, {{ employee.first_name }}!</h1>
+        <p class="text-gray-700 text-center mb-4">You are logged in as <strong>{{ employee.email }}</strong>.</p>
 
-    <!-- Today's Bookings -->
-    <h3>Today's Bookings</h3>
-    <ul>
-        {% for booking in todays_bookings %}
-            <li>
-                <strong>Space:</strong> {{ booking.0 }} <br>
-                <strong>Start:</strong> {{ booking.1 }} <br>
-                <strong>End:</strong> {{ booking.2 }} <br>
-                <strong>Status:</strong> {{ booking.3 }}
-            </li>
-        {% endfor %}
-    </ul>
+        <!-- Today's Bookings -->
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Today's Bookings</h2>
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            {% if todays_bookings %}
+                <ul class="divide-y divide-gray-300">
+                    {% for booking in todays_bookings %}
+                        <li class="py-4">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <p><strong>Space:</strong> {{ booking.0 }}</p>
+                                <p><strong>Start:</strong> {{ booking.1|date:"M d, Y, h:i a" }} <br>
+                                   <strong>End:</strong> {{ booking.2|date:"M d, Y, h:i a" }} <br>
+                                   <strong>Status:</strong> {{ booking.3 }}
+                                </p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-500">No bookings for today.</p>
+            {% endif %}
+        </div>
 
-    <!-- Total Revenue -->
-    <h3>Total Revenue Today</h3>
-    <p>${{ total_revenue }}</p>
+        <!-- Space Utilization -->
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Space Utilization</h2>
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <ul>
+                {% for space in spaces_in_use_today %}
+                    <li><strong>{{ space }}:</strong> In Use</li>
+                {% endfor %}
+                {% for space in spaces_not_in_use_today %}
+                    <li><strong>{{ space }}:</strong> Not in Use</li>
+                {% endfor %}
+            </ul>
+        </div>
 
-    <!-- Revenue by Space -->
-    <h3>Revenue by Space</h3>
-    <ul>
-        {% for space, revenue in revenue_by_space %}
-            <li><strong>{{ space }}:</strong> ${{ revenue }}</li>
-        {% endfor %}
-    </ul>
+        <!-- Total Revenue -->
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Total Revenue Today</h2>
+        <p class="bg-gray-50 p-4 rounded-lg shadow-sm text-xl font-bold">${{ total_revenue }}</p>
 
-    <!-- Active Members -->
-    <h3>Active Members this Month</h3>
-    <p>{{ active_members }} active members</p>
+        <!-- Booking Analysis by Space Type -->
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Booking Analysis by Space Type</h2>
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <ul>
+                {% for space, count in booking_analysis_by_space_type %}
+                    <li><strong>{{ space }}:</strong> {{ count }} bookings</li>
+                {% endfor %}
+            </ul>
+        </div>
 
-    <!-- Member Retention -->
-    <h3>Member Retention</h3>
-    <p>New Members: {{ member_retention.0 }}</p>
-    <p>Returning Members: {{ member_retention.1 }}</p>
+        <!-- Average Booking Duration -->
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Average Booking Duration</h2>
+        <p class="bg-gray-50 p-4 rounded-lg shadow-sm">{{ average_booking_duration }} minutes</p>
 
-    <!-- Booking Trends -->
-    <h3>Booking Trends (Bookings per Day)</h3>
-    <ul>
-        {% for date, count in booking_trends %}
-            <li>{{ date }}: {{ count }} bookings</li>
-        {% endfor %}
-    </ul>
+        <!-- Booking Trends -->
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Booking Trends (Last 7 Days)</h2>
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <canvas id="bookingTrendsChart" width="400" height="200"></canvas>
+        </div>
 
-    <!-- Invoice Status -->
-    <h3>Invoice Status</h3>
-    <p>Paid Revenue: ${{ invoice_status.0 }}</p>
-    <p>Unpaid Revenue: ${{ invoice_status.1 }}</p>
+        <!-- JavaScript for Chart -->
+        <script>
+        const ctx = document.getElementById('bookingTrendsChart').getContext('2d');
+        const bookingTrendsData = {
+            labels: [
+                {% for date, count in booking_trends %}
+                    "{{ date }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Bookings per Day',
+                data: [
+                    {% for date, count in booking_trends %}
+                        {{ count }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const bookingTrendsChart = new Chart(ctx, {
+            type: 'bar',
+            data: bookingTrendsData,
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Number of Bookings'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        </script>
+
+        <!-- View Details Button -->
+        <div class="flex justify-center mt-6">
+            <a href="{% url 'view_tables' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                View Details
+            </a>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="flex justify-center mt-6">
+            <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
+                Logout
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}
