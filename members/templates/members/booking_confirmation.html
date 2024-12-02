@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8">
+        <!-- Booking Confirmation Section -->
+        <h1 class="text-3xl font-bold text-center mb-4">Confirm Your Booking</h1>
+        <p class="text-gray-700 text-center mb-4">You are booking space: <strong>{{ booking_details.space_name }}</strong>.</p>
+
+        <!-- Booking Details Section -->
+        <h2 class="text-2xl font-bold mt-8 mb-4">Booking Details</h2>
+        <div class="mb-4">
+            <ul class="divide-y divide-gray-200">
+                <li class="py-4">
+                    <p><strong>Booking ID:</strong> {{ booking_details.booking_id }}</p>
+                </li>
+                <li class="py-4">
+                    <p><strong>Start Time:</strong> {{ booking_details.start_time }} <br>
+                       <strong>End Time:</strong> {{ booking_details.end_time }}</p>
+                </li>
+                <li class="py-4">
+                    <p><strong>Invoice Issue Date:</strong> {{ booking_details.issue_date }} <br>
+                       <strong>Invoice Due Date:</strong> {{ booking_details.due_date }} <br>
+                       <strong>Amount:</strong> ${{ booking_details.amount }} <br>
+                       <strong>Tax:</strong> ${{ booking_details.tax_amount }} <br>
+                       <strong>Additional Fees:</strong> ${{ booking_details.additional_fees }} <br>
+                       <strong>Status:</strong> {{ booking_details.status }}</p>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Action Buttons Section -->
+        <div class="flex justify-center mt-6">
+            <a href="{% url 'coworking_spaces' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Go Back to Spaces
+            </a>
+            <a href="{% url 'home' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Home
+            </a>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="flex justify-center mt-6">
+            <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                Logout
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

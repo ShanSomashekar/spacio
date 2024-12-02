@@ -2,39 +2,126 @@
 
 {% block content %}
 <div class="container mx-auto py-8">
-    <div class="max-w-2xl mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg px-8 pt-6 pb-8">
         <h1 class="text-3xl font-bold text-center mb-4">Welcome, {{ member.Name }}!</h1>
         <p class="text-gray-700 text-center mb-4">You are logged in as <strong>{{ member.Email }}</strong>.</p>
 
-        <!-- Bookings Section -->
-        <h2 class="text-2xl font-bold mt-8 mb-4">Your Bookings</h2>
-        <div class="mb-4">
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Your Bookings</h2>
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
             {% if bookings %}
-                <ul>
+                <ul class="divide-y divide-gray-300">
                     {% for booking in bookings %}
-                        <li class="mb-4">
-                            <div class="font-bold text-lg">{{ booking.1 }}</div>  <!-- Space Name -->
-                            <p><strong>From:</strong> {{ booking.2 }} <strong>To:</strong> {{ booking.3 }}<br>
-                               <strong>Status:</strong> {{ booking.4 }}</p>
+                        <li class="py-4">
+                            <!-- Booking details -->
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <p><strong>Space:</strong> {{ booking.1 }}</p>
+                                <p><strong>From:</strong> {{ booking.2|date:"M d, Y, h:i a" }} <br>
+                                   <strong>To:</strong>
+                                   {% if booking.3 %}
+                                       {{ booking.3|date:"M d, Y, h:i a" }}
+                                   {% else %}
+                                       None
+                                   {% endif %}
+                                </p>
+                                <p><strong>Status:</strong> {{ booking.4 }}</p>
+                            </div>
+
+                            <!-- Invoice details (if available) -->
+                            {% if booking.5 %}
+                                <div class="mt-4 bg-white p-4 rounded-lg shadow-sm">
+                                    <p><strong>Invoice Amount:</strong> ${{ booking.6 }}</p>
+                                    <p><strong>Invoice Status:</strong> {{ booking.7 }}</p>
+                                    <p><strong>Issued On:</strong> {{ booking.8|date:"M d, Y" }}</p>
+                                </div>
+                            {% else %}
+                                <p class="mt-4 text-gray-500">No invoice available for this booking.</p>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>No bookings found.</p>
+                <p class="text-gray-500">You have no current bookings.</p>
             {% endif %}
         </div>
 
-        <!-- Create New Booking Section -->
+        <!-- Browse Spaces Section -->
         <div class="flex justify-center mt-6">
-            <a href="{% url 'create_booking' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                Create New Booking
+            <a href="{% url 'coworking_spaces' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                Browse and Book Spaces
             </a>
         </div>
+<!-- Statistics and Insights Section -->
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Statistics and Insights</h2>
 
-        <!-- Logout Section -->
+        <!-- Usage History -->
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm mb-6">
+            <p><strong>Total Hours Booked This Month:</strong> {{ total_hours }} hours</p>
+            <h3 class="text-xl font-medium mt-4">Favorite Spaces:</h3>
+            {% if favorite_spaces %}
+                <ul class="list-disc ml-6">
+                    {% for space, count in favorite_spaces %}
+                        <li>{{ space }} ({{ count }} bookings)</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-500">No favorite spaces yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Booking Trends -->
+        <h3 class="text-xl font-medium mt-4 mb-4">Booking Trends</h3>
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <canvas id="bookingTrendsChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- JavaScript for Chart -->
+        <script>
+        const ctx = document.getElementById('bookingTrendsChart').getContext('2d');
+        const bookingTrendsData = {
+            labels: [
+                {% for date, count in booking_trends %}
+                    "{{ date }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Bookings per Day',
+                data: [
+                    {% for date, count in booking_trends %}
+                        {{ count }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const bookingTrendsChart = new Chart(ctx, {
+            type: 'bar',
+            data: bookingTrendsData,
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Number of Bookings'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        </script>
+        <!-- Logout Button -->
         <div class="flex justify-center mt-6">
-            <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                Log Out
+            <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
+                Logout
             </a>
         </div>
     </div>

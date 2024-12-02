@@ -4,9 +4,24 @@
 <div class="container mx-auto py-8">
     <h1 class="text-3xl font-bold text-center mb-6">Available Coworking Spaces</h1>
 
-    <!-- Sorting Options -->
+    <!-- Sorting and Filter Options -->
     <div class="mb-6 flex justify-between items-center">
         <form method="GET" class="flex space-x-4">
+            <!-- Space Type Filter -->
+            <select name="space_type" class="border px-4 py-2 rounded">
+                <option value="">Select Space Type</option>
+                {% for type in space_types %}
+                    <option value="{{ type }}" {% if space_type == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Start Time Picker -->
+            <input type="datetime-local" name="start_time" value="{{ start_time }}" class="border px-4 py-2 rounded">
+
+            <!-- End Time Picker -->
+            <input type="datetime-local" name="end_time" value="{{ end_time }}" class="border px-4 py-2 rounded">
+
+            <!-- Sorting Options -->
             <select name="sort_by" class="border px-4 py-2 rounded">
                 <option value="HourlyPrice" {% if sort_by == "HourlyPrice" %}selected{% endif %}>Hourly Price</option>
                 <option value="DailyPrice" {% if sort_by == "DailyPrice" %}selected{% endif %}>Daily Price</option>
@@ -16,7 +31,8 @@
                 <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>Ascending</option>
                 <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>Descending</option>
             </select>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Sort</button>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Filter & Sort</button>
         </form>
     </div>
 
@@ -25,13 +41,18 @@
         {% for space in spaces %}
         <div class="bg-white shadow-md rounded p-6">
             <h2 class="text-xl font-bold mb-2">{{ space.1 }}</h2>
-            <p><strong>Hourly Price:</strong> ${{ space.2 }}</p>
-            <p><strong>Daily Price:</strong> ${{ space.3 }}</p>
-            <p><strong>Monthly Price:</strong> ${{ space.4 }}</p>
-            <p><strong>Status:</strong> {{ space.5 }}</p>
-            <form method="POST" action="{% url 'book_space' %}">
-                {% csrf_token %}
-                <input type="hidden" name="space_id" value="{{ space.0 }}">
+            <p><strong>Hourly Price:</strong> ₹{{ space.5 }}</p>
+            <p><strong>Daily Price:</strong> ₹{{ space.6 }}</p>
+            <p><strong>Monthly Price:</strong> ₹{{ space.7 }}</p>
+            <p><strong>Capacity:</strong> {{ space.3 }} people</p>
+
+
+            <form method="GET" action="{% url 'book_space' SpaceID=space.0 %}">
+                <!-- Pass space type and time filters to book page -->
+                <input type="hidden" name="start_time" value="{{ start_time }}">
+                <input type="hidden" name="end_time" value="{{ end_time }}">
+                <input type="hidden" name="space_type" value="{{ space_type }}">
+
                 <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4">
                     Book Now
                 </button>

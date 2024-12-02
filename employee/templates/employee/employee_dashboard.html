@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Welcome to Your Dashboard, {{ employee.first_name }}!</h2>
+
+    <!-- Today's Bookings -->
+    <h3>Today's Bookings</h3>
+    <ul>
+        {% for booking in todays_bookings %}
+            <li>
+                <strong>Space:</strong> {{ booking.0 }} <br>
+                <strong>Start:</strong> {{ booking.1 }} <br>
+                <strong>End:</strong> {{ booking.2 }} <br>
+                <strong>Status:</strong> {{ booking.3 }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Total Revenue -->
+    <h3>Total Revenue Today</h3>
+    <p>${{ total_revenue }}</p>
+
+    <!-- Revenue by Space -->
+    <h3>Revenue by Space</h3>
+    <ul>
+        {% for space, revenue in revenue_by_space %}
+            <li><strong>{{ space }}:</strong> ${{ revenue }}</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Active Members -->
+    <h3>Active Members this Month</h3>
+    <p>{{ active_members }} active members</p>
+
+    <!-- Member Retention -->
+    <h3>Member Retention</h3>
+    <p>New Members: {{ member_retention.0 }}</p>
+    <p>Returning Members: {{ member_retention.1 }}</p>
+
+    <!-- Booking Trends -->
+    <h3>Booking Trends (Bookings per Day)</h3>
+    <ul>
+        {% for date, count in booking_trends %}
+            <li>{{ date }}: {{ count }} bookings</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Invoice Status -->
+    <h3>Invoice Status</h3>
+    <p>Paid Revenue: ${{ invoice_status.0 }}</p>
+    <p>Unpaid Revenue: ${{ invoice_status.1 }}</p>
+</div>
+{% endblock %}

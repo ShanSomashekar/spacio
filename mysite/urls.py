@@ -29,6 +29,8 @@ urlpatterns = [
 
     path("view/", include("view.urls")),
     path('members/', include('members.urls')),
+
+    path('employee/', include('employee.urls')),
 ]
 
 if settings.DEBUG:

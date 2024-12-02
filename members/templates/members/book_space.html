@@ -1,57 +1,36 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="container mx-auto py-8">
-    <div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <h1 class="text-3xl font-bold text-center mb-6">Book a Coworking Space</h1>
+    <div class="container mx-auto p-6">
+        <h2 class="text-2xl font-semibold mb-4">Book Coworking Space</h2>
 
-        <!-- Booking Form -->
-        <form method="POST">
+        <!-- Form to book a space -->
+        <form method="POST" action="{% url 'book_space' SpaceID=space.0 %}">
             {% csrf_token %}
 
+            <!-- Hidden input for SpaceID -->
+            <input type="hidden" name="space_id" value="{{ space.0 }}">
+
+            <!-- Space Name -->
             <div class="mb-4">
-                <label for="space_id" class="block text-sm font-semibold text-gray-700">Select Space</label>
-                <select name="space_id" id="space_id" class="w-full px-4 py-2 border border-gray-300 rounded-md" required>
-                    {% for space in spaces %}
-                        <option value="{{ space.0 }}">{{ space.1 }} -
-                            ${{ space.2 }} / Hour | ${{ space.3 }} / Day | ${{ space.4 }} / Month</option>
-                    {% endfor %}
-                </select>
+                <label class="block text-sm font-semibold text-gray-700">Space Name:</label>
+                <input type="text" name="space_name" value="{{ space.1 }}" class="w-full px-4 py-2 border border-gray-300 rounded-md" readonly>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="start_date" class="block text-sm font-semibold text-gray-700">Start Date</label>
-                    <input type="date" name="start_date" id="start_date" class="w-full px-4 py-2 border border-gray-300 rounded-md" required>
-                </div>
-                <div>
-                    <label for="start_time" class="block text-sm font-semibold text-gray-700">Start Time</label>
-                    <input type="time" name="start_time" id="start_time" class="w-full px-4 py-2 border border-gray-300 rounded-md" required>
-                </div>
+            <!-- Start Time -->
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700">Start Time:</label>
+                <input type="datetime-local" name="start_time" class="w-full px-4 py-2 border border-gray-300 rounded-md" required>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="end_date" class="block text-sm font-semibold text-gray-700">End Date</label>
-                    <input type="date" name="end_date" id="end_date" class="w-full px-4 py-2 border border-gray-300 rounded-md" required>
-                </div>
-                <div>
-                    <label for="end_time" class="block text-sm font-semibold text-gray-700">End Time</label>
-                    <input type="time" name="end_time" id="end_time" class="w-full px-4 py-2 border border-gray-300 rounded-md" required>
-                </div>
+            <!-- End Time -->
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700">End Time:</label>
+                <input type="datetime-local" name="end_time" class="w-full px-4 py-2 border border-gray-300 rounded-md" required>
             </div>
 
-            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md mt-6">Book Space</button>
+            <!-- Submit button -->
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Confirm Booking</button>
         </form>
-
-        <!-- Displaying Messages -->
-        {% if messages %}
-            <ul class="mt-4">
-                {% for message in messages %}
-                    <li class="text-red-600">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
     </div>
-</div>
 {% endblock %}

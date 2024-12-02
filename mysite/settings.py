@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     "view",
     "view.templatetags",
     "members",
+    "employee",
+
 
 ]
 
@@ -55,6 +57,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
 ROOT_URLCONF = "mysite.urls"
@@ -163,7 +168,15 @@ STATICFILES_DIRS = [
 ]
 
 # Redirect after successful login
-LOGIN_REDIRECT_URL = '/members/home/'
+# LOGIN_REDIRECT_URL = '/members/home/'
+#
+# # Optional: Redirect URL for logout
+# LOGOUT_REDIRECT_URL = '/members/login/'
 
-# Optional: Redirect URL for logout
-LOGOUT_REDIRECT_URL = '/members/login/'
+
+# LOGIN_URL_EMPLOYEES = '/employee/login/'  # Custom login URL for employees
+# LOGIN_URL_MEMBERS = '/members/login/'     # Custom login URL for members
+
+MIDDLEWARE += [
+    'employee.middleware.enforce_password_change.EnforcePasswordChangeMiddleware',
+]

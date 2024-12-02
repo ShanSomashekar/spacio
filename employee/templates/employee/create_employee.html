@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Employee</title>
+</head>
+<body>
+    <h2>Create Employee</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label>First Name:</label><br>
+        <input type="text" name="first_name" required><br>
+        <label>Last Name:</label><br>
+        <input type="text" name="last_name" required><br>
+        <label>Email:</label><br>
+        <input type="email" name="email" required><br>
+        <label>Phone Number:</label><br>
+        <input type="text" name="phone_number"><br>
+        <label>Position:</label><br>
+        <input type="text" name="position" required><br>
+        <label>Department:</label><br>
+        <input type="text" name="department"><br>
+        <label>Hire Date:</label><br>
+        <input type="date" name="hire_date" required><br>
+        <label>Salary:</label><br>
+        <input type="number" name="salary" step="0.01"><br>
+        <label>Password:</label><br>
+        <input type="password" name="password" required><br>
+        <label>Must Change Password:</label><br>
+        <input type="checkbox" name="must_change_password"><br><br>
+        <button type="submit">Create Employee</button>
+    </form>
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+</body>
+</html>

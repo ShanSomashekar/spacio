@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% extends 'base.html' %}
+
+{% block title %}Confirm Your Booking{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Confirm Your Booking</h1>
+
+    <h2>Space Details</h2>
+    <p><strong>Space Name:</strong> {{ space.1 }}</p> <!-- Assuming space name is the second column -->
+    <p><strong>Capacity:</strong> {{ space.2 }} people</p> <!-- Assuming capacity is the third column -->
+    <p><strong>Hourly Price:</strong> ${{ space.3 }}</p>
+    <p><strong>Daily Price:</strong> ${{ space.4 }}</p>
+    <p><strong>Monthly Price:</strong> ${{ space.5 }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="start_time">Start Time</label>
+            <input type="datetime-local" id="start_time" name="start_time" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="end_time">End Time</label>
+            <input type="datetime-local" id="end_time" name="end_time" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Confirm Booking</button>
+    </form>
+</div>
+{% endblock %}
+</title>
+</head>
+<body>
+
+</body>
+</html>

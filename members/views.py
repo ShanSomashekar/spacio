@@ -1,3 +1,5 @@
+from django.http import HttpResponse
+from django.urls import reverse
 from .forms import MemberRegistrationForm
 from django.db import connection
 def register_view(request):
@@ -46,39 +48,21 @@ def login_view(request):
 
     return render(request, 'members/login.html')
 
-from django.shortcuts import render
+
+from .models import Member
 
 
 from django.shortcuts import render, redirect
-from .models import Member
-
-# def home_view(request):
-#     # Check if the user is logged in by checking the session
-#     if 'user' in request.session:
-#         member_id = request.session['user']
-#         try:
-#             # Retrieve the member using the session-stored ID
-#             member = Member.objects.get(MemberID=member_id)
-#             # Fetch member's bookings and invoices (assuming these are related models)
-#             bookings = member.bookings.all()  # Example for fetching related bookings
-#             invoices = member.invoices.all()  # Example for fetching related invoices
-#             return render(request, 'members/home.html', {
-#                 'member': member,
-#                 'bookings': bookings,
-#                 'invoices': invoices
-#             })
-#         except Member.DoesNotExist:
-#             # Redirect to login if member does not exist in the database
-#             return redirect('login')
-#     else:
-#         # If no user session exists, redirect to the login page
-#         return redirect('login')  # Redirect to login if no session is found
-
-
 from django.db import connection
-from django.shortcuts import render, redirect
-from .models import Member
+from .models import Member  # Ensure your Member model is imported
 
+from django.shortcuts import render, redirect
+from django.db import connection
+from datetime import datetime
+
+from django.shortcuts import render, redirect
+from django.db import connection
+from datetime import datetime
 
 def home_view(request):
     if 'user' in request.session:
@@ -87,20 +71,69 @@ def home_view(request):
             # Fetch the member details
             member = Member.objects.get(MemberID=member_id)
 
-            # Fetch bookings directly from the database
+            # Fetch bookings and invoices together, linked by BookingID
             with connection.cursor() as cursor:
                 cursor.execute("""
-                    SELECT b.BookingID, s.Name, b.StartTime, b.EndTime, b.Status
+                    SELECT 
+                        b.BookingID, s.Name AS Space, b.StartTime, b.EndTime, b.Status,
+                        i.InvoiceID, i.Amount, i.Status AS InvoiceStatus, i.IssueDate
+                    FROM 
+                        Bookings b
+                    JOIN 
+                        Spaces s ON b.SpaceID = s.SpaceID
+                    LEFT JOIN 
+                        Invoices i ON b.BookingID = i.BookingID
+                    WHERE 
+                        b.MemberID = %s
+                """, [member_id])
+                bookings = cursor.fetchall()
+
+            # Calculate total hours booked this month (MariaDB/MySQL compatible)
+            current_month = datetime.now().month
+            current_year = datetime.now().year
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COALESCE(SUM(
+                        TIMESTAMPDIFF(HOUR, b.StartTime, b.EndTime)
+                    ), 0) AS total_hours
+                    FROM Bookings b
+                    WHERE b.MemberID = %s 
+                        AND MONTH(b.StartTime) = %s 
+                        AND YEAR(b.StartTime) = %s
+                """, [member_id, current_month, current_year])
+                total_hours = round(cursor.fetchone()[0], 2)
+
+            # Fetch favorite spaces (top 3 most booked spaces)
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT s.Name, COUNT(b.BookingID) AS booking_count
                     FROM Bookings b
                     JOIN Spaces s ON b.SpaceID = s.SpaceID
                     WHERE b.MemberID = %s
+                    GROUP BY s.Name
+                    ORDER BY booking_count DESC
+                    LIMIT 3
                 """, [member_id])
-                bookings = cursor.fetchall()  # List of tuples
+                favorite_spaces = cursor.fetchall()
 
-            # Pass the data to the template
+            # Fetch booking trends (bookings per day)
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT DATE(b.StartTime) AS booking_date, COUNT(*) AS booking_count
+                    FROM Bookings b
+                    WHERE b.MemberID = %s
+                    GROUP BY booking_date
+                    ORDER BY booking_date ASC
+                """, [member_id])
+                booking_trends = cursor.fetchall()
+
+            # Pass all the data to the template
             return render(request, 'members/home.html', {
                 'member': member,
                 'bookings': bookings,
+                'total_hours': total_hours,
+                'favorite_spaces': favorite_spaces,
+                'booking_trends': booking_trends,
             })
         except Member.DoesNotExist:
             return redirect('login')
@@ -114,10 +147,9 @@ from django.shortcuts import redirect
 def logout_view(request):
     logout(request)
     return redirect('login')
-from django.shortcuts import render, redirect
+
 from django.contrib.auth.decorators import login_required
-from django.db import connection
-from django.contrib import messages
+
 
 
 @login_required
@@ -148,120 +180,266 @@ from django.db import connection
 from django.contrib import messages
 
 def create_booking(request):
-        return redirect('login')
-
-        with connection.cursor() as cursor:
-            cursor.execute("""
-
-
-                with connection.cursor() as cursor:
-
-
-from django.shortcuts import render, redirect
-from django.db import connection
-from django.contrib import messages
-
-    sort_by = request.GET.get('sort_by', 'hourly_price')  # Default sorting by hourly price
-    sort_order = request.GET.get('sort_order', 'asc')  # Default ascending order
-
-    # Validate sort order
-    sort_order = 'ASC' if sort_order == 'asc' else 'DESC'
-
-    # Fetch spaces with sorting
-    query = f"""
-        SELECT s.SpaceID, s.Name, p.hourly_price, p.monthly_price, p.weekly_price, p.yearly_price, s.OccupationStatus
-        FROM Spaces s
-        JOIN price p ON s.SpaceID = p.SpaceID
-        WHERE s.OccupationStatus = 'Available'
-        ORDER BY {sort_by} {sort_order}
-    """
-    with connection.cursor() as cursor:
-        cursor.execute(query)
-        spaces = cursor.fetchall()
-
-    return render(request, 'members/coworking_spaces.html', {
-        'spaces': spaces,
-        'sort_by': sort_by,
-        'sort_order': sort_order
-    })
-from django.http import HttpResponseRedirect
-
-from datetime import datetime
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.db import connection
-
-def book_space(request):
     if request.method == 'POST':
-        # Retrieve data from the form
-        space_id = request.POST.get('space_id')
-        start_date = request.POST.get('start_date')  # Start Date (yyyy-mm-dd)
-        start_time = request.POST.get('start_time')  # Start Time (HH:mm)
-        end_date = request.POST.get('end_date')      # End Date (yyyy-mm-dd)
-        end_time = request.POST.get('end_time')      # End Time (HH:mm)
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        space = request.POST.get('space')
 
-        # Check if any required field is missing or empty
-        if not start_date or not start_time or not end_date or not end_time:
-            messages.error(request, "All fields (start date, start time, end date, end time) are required.")
-            return redirect('book_space')  # Redirect back to the booking page
-
-        try:
-            start_datetime = datetime.strptime(f"{start_date} {start_time}", "%Y-%m-%d %H:%M")
-            end_datetime = datetime.strptime(f"{end_date} {end_time}", "%Y-%m-%d %H:%M")
-
-        except ValueError:
-            # If the date and time format is incorrect, show an error
-            messages.error(request, "Please provide valid date and time formats.")
-            return redirect('book_space')
-
-        # Get the MemberID from the session
         member_id = request.session.get('user')
 
         if not member_id:
-            messages.error(request, "You must be logged in to book a space.")
+            messages.error(request, "You must be logged in to create a booking.")
             return redirect('login')
 
-        # Check if the space is available for the given time range
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT COUNT(*) FROM Bookings
-                WHERE SpaceID = %s
-                AND Status = 'Booked'
-                AND (
-                )
-            """, [space_id, start_datetime, start_datetime, end_datetime, end_datetime])
-            count = cursor.fetchone()[0]
+                INSERT INTO Bookings (MemberID, StartTime, EndTime, SpaceID)
+                VALUES (%s, %s, %s, %s)
+            """, [member_id, start_time, end_time, space])
 
-            if count > 0:
-                messages.error(request, "This space is already booked for the selected time.")
-                return redirect('book_space')
+        messages.success(request, "Booking created successfully!")
+        return redirect('home')
 
-            # Proceed with booking the space
-            try:
-                cursor.execute("""
-                    VALUES (%s, %s, %s, %s, 'Booked')
-                """, [member_id, space_id, start_datetime, end_datetime])
-
-                # Update the space's occupation status
-                cursor.execute("""
-                    UPDATE Spaces
-                    SET OccupationStatus = 'Booked'
-                    WHERE SpaceID = %s
-                """, [space_id])
-
-                messages.success(request, "Booking created successfully!")
-                return redirect('home')  # Redirect back to the home page after booking
-            except Exception as e:
-                messages.error(request, f"Error booking space: {str(e)}")
-                return redirect('book_space')
-
-    # Get available spaces to display on the booking page
+    # Fetch available spaces
     with connection.cursor() as cursor:
-        cursor.execute("""
-            FROM Spaces s
-            JOIN price p ON s.SpaceID = p.SpaceID
-            WHERE s.OccupationStatus = 'Available'
-        """)
+        cursor.execute("SELECT SpaceID, Name FROM Spaces WHERE OccupationStatus = 'Available'")
         spaces = cursor.fetchall()
 
-    return render(request, 'members/book_space.html', {'spaces': spaces})
+    return render(request, 'members/create_booking.html', {'spaces': spaces})
+
+
+
+def coworking_spaces(request):
+    # Get filter and sorting parameters from the request
+    sort_by = request.GET.get('sort_by', 'HourlyPrice')
+    sort_order = request.GET.get('sort_order', 'asc')
+    space_type = request.GET.get('space_type', None)
+    start_time = request.GET.get('start_time', None)
+    end_time = request.GET.get('end_time', None)
+
+    # Validate sort_by column to prevent SQL injection
+    valid_sort_columns = ['HourlyPrice', 'DailyPrice', 'MonthlyPrice', 'YearlyPrice']
+    if sort_by not in valid_sort_columns:
+        sort_by = 'HourlyPrice'
+
+    # Query for all available space types
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT DISTINCT Type FROM Spaces")
+        space_types = [row[0] for row in cursor.fetchall()]
+
+    # Construct the main SQL query for spaces
+    sql = f"""
+        SELECT 
+            s.SpaceID, 
+            s.Name, 
+            s.Type, 
+            s.Capacity,
+            p.HourlyPrice, 
+            p.DailyPrice, 
+            p.MonthlyPrice, 
+            p.YearlyPrice, 
+            s.OccupationStatus
+        FROM Spaces s
+        JOIN price p ON s.SpaceID = p.SpaceID
+        WHERE s.OccupationStatus = 'Available'
+    """
+    params = []
+
+    # Apply space type filter
+    if space_type:
+        sql += " AND s.Type = %s"
+        params.append(space_type)
+
+    # Exclude booked spaces during the specified time
+    if start_time and end_time:
+        sql += """
+            AND s.SpaceID NOT IN (
+                SELECT SpaceID
+                FROM Bookings
+                WHERE StartTime < %s AND EndTime > %s
+            )
+        """
+        params.extend([end_time, start_time])
+
+    # Apply sorting
+    sql += f" ORDER BY {sort_by} {'ASC' if sort_order == 'asc' else 'DESC'}"
+
+    # Execute the main query
+    with connection.cursor() as cursor:
+        cursor.execute(sql, params)
+        spaces = cursor.fetchall()
+
+    # Render the template with data
+    return render(request, 'members/coworking_spaces.html', {
+        'spaces': spaces,
+        'space_types': space_types,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'space_type': space_type,
+        'start_time': start_time,
+        'end_time': end_time,
+    })
+
+
+
+from django.shortcuts import render, HttpResponse
+
+from datetime import datetime, timedelta
+# @login_required()
+def book_space(request, SpaceID):
+    if 'user' in request.session:
+        member_id = request.session['user']
+
+    if request.method == 'POST':
+        # Extract start and end datetime from form
+        start_time_str = request.POST.get('start_time')
+        end_time_str = request.POST.get('end_time')
+
+        try:
+            # Convert the datetime strings to datetime objects
+            start_datetime = datetime.fromisoformat(start_time_str)
+            end_datetime = datetime.fromisoformat(end_time_str)
+        except ValueError as e:
+            return HttpResponse(f"Invalid datetime format: {e}", status=400)
+
+        # Fetch space details using raw SQL
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT S.SpaceID, S.Name, p.HourlyPrice, p.DailyPrice, p.MonthlyPrice, p.YearlyPrice
+                FROM Spaces S 
+                JOIN price p ON S.SpaceID = p.SpaceID
+                WHERE S.SpaceID = %s
+            """, [SpaceID])
+            space = cursor.fetchone()
+
+        if space:
+            # Extract space details
+            space_id = space[0]
+            space_name = space[1]
+            hourly_rate = space[2]
+            daily_rate = space[3]
+            monthly_rate = space[4]
+
+            # Calculate the price based on the duration
+            total_price = calculate_price(start_datetime, end_datetime, hourly_rate, daily_rate, monthly_rate)
+            tax_amount = Decimal(total_price) * Decimal(0.18)  # 18% tax
+            additional_fees = 100  # Flat additional fee
+            total = total_price + additional_fees + tax_amount
+            status = 'Payment Pending'
+            # Confirm booking - Insert booking into the database
+
+
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO Bookings (SpaceID, MemberID, StartTime, EndTime)
+                    VALUES (%s, %s, %s, %s)
+                """, [space_id, member_id, start_datetime, end_datetime])
+                cursor.execute("SELECT LAST_INSERT_ID()")
+                BookingID = cursor.fetchone()[0]
+
+                cursor.execute("""
+                        INSERT INTO Invoices (BookingID, IssueDate, DueDate, Amount, TaxAmount, AdditionalFees, total, Status)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """, [BookingID,  datetime.now(), ( datetime.now() + timedelta(days=7)), total_price,  tax_amount, additional_fees, total, status])
+
+
+            # Return confirmation page or redirect
+            return redirect(reverse('booking_confirmation', args=[BookingID]))
+
+    else:
+        # GET request: Fetch space details and show the booking form
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT SpaceID, Name
+                FROM Spaces
+                WHERE SpaceID = %s
+            """, [SpaceID])
+            space = cursor.fetchone()
+
+        if space:
+            return render(request, 'members/book_space.html', {'space': space})
+        else:
+            return HttpResponse("Space not found", status=404)
+
+
+from decimal import Decimal
+
+def calculate_price(start_datetime, end_datetime, hourly_rate, daily_rate, monthly_rate):
+    """
+    Calculate the price for the space based on the duration of the booking.
+    """
+    duration = end_datetime - start_datetime
+    hours = duration.total_seconds() / 3600  # Convert to hours
+
+    # Convert hours (float) to Decimal for accurate calculations
+    hours = Decimal(hours)
+
+    if hours < 24:
+        # Price for hourly booking
+        return hourly_rate * hours
+    elif 24 <= hours < 744:  # 24 hours * 31 days = 744 hours (approximately one month)
+        # Price for daily booking
+        days = hours / Decimal(24)  # Convert days to Decimal
+        return daily_rate * days
+    else:
+        # Price for monthly booking
+        return monthly_rate
+
+
+
+    from django.shortcuts import render
+    from django.db import connection
+
+from django.db import connection
+from django.shortcuts import render
+
+def booking_confirmation(request, booking_id):
+    cursor = connection.cursor()
+
+    # Execute the SQL query to fetch booking and invoice details
+    cursor.execute("""
+        SELECT 
+            b.BookingID AS booking_id,
+            b.StartTime,
+            b.EndTime,
+            s.name AS space_name,
+            i.IssueDate,
+            i.DueDate,
+            i.Amount,
+            i.TaxAmount,
+            i.AdditionalFees,
+            i.Status,
+            i.total
+        FROM 
+            Bookings b
+        JOIN 
+            Spaces s ON b.SpaceID = s.SpaceID
+        JOIN 
+            Invoices i ON b.BookingID = i.BookingID
+        WHERE 
+            b.BookingID = %s
+    """, [booking_id])
+
+    # Fetch the result
+    booking_data = cursor.fetchone()
+
+    if booking_data:
+        # Convert the result into a dictionary for easy access in the template
+        booking_details = {
+            'booking_id': booking_data[0],
+            'start_time': booking_data[1],
+            'end_time': booking_data[2],
+            'space_name': booking_data[3],
+            'issue_date': booking_data[4],
+            'due_date': booking_data[5],
+            'amount': booking_data[6],
+            'tax_amount': booking_data[7],
+            'additional_fees': booking_data[8],
+            'status': booking_data[9],
+            'total': booking_data[10],
+        }
+
+        return render(request, 'members/booking_confirmation.html', {'booking_details': booking_details})
+    else:
+        return HttpResponse("Booking not found", status=404)
+

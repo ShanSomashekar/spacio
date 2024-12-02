@@ -8,11 +8,8 @@ class Member(models.Model):
     Address = models.CharField(max_length=100, null=True, blank=True)
     Company = models.CharField(max_length=100, null=True, blank=True)
     GST = models.CharField(max_length=20, null=True, blank=True)
-    MembershipID = models.IntegerField(null=True, blank=True)
     PasswordHash = models.CharField(max_length=255)
     PasswordSalt = models.CharField(max_length=255)
-    LastLogin = models.DateTimeField(null=True, blank=True)
-    IsActive = models.BooleanField(default=True)
     AadharID = models.CharField(max_length=12, unique=True, null=True, blank=True)
 
     class Meta:
