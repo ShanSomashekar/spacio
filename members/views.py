@@ -40,7 +40,7 @@ def login_view(request):
                 request.session['user'] = member_id  # Storing the MemberID in session
 
                 messages.success(request, f"Welcome back, {name}!")
-                return redirect('home')
+                return redirect('members:home')
             else:
                 messages.error(request, "Invalid password.")
         else:
@@ -344,7 +344,7 @@ def book_space(request, SpaceID):
 
 
             # Return confirmation page or redirect
-            return redirect(reverse('booking_confirmation', args=[BookingID]))
+            return redirect(reverse('members:booking_confirmation', args=[BookingID]))
 
     else:
         # GET request: Fetch space details and show the booking form

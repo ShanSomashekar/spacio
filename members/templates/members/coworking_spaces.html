@@ -47,7 +47,7 @@
             <p><strong>Capacity:</strong> {{ space.3 }} people</p>
 
 
-            <form method="GET" action="{% url 'book_space' SpaceID=space.0 %}">
+            <form method="GET" action="{% url 'members:book_space' SpaceID=space.0 %}">
                 <!-- Pass space type and time filters to book page -->
                 <input type="hidden" name="start_time" value="{{ start_time }}">
                 <input type="hidden" name="end_time" value="{{ end_time }}">

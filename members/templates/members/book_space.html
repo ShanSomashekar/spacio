@@ -5,7 +5,7 @@
         <h2 class="text-2xl font-semibold mb-4">Book Coworking Space</h2>
 
         <!-- Form to book a space -->
-        <form method="POST" action="{% url 'book_space' SpaceID=space.0 %}">
+        <form method="POST" action="{% url 'members:book_space' SpaceID=space.0 %}">
             {% csrf_token %}
 
             <!-- Hidden input for SpaceID -->

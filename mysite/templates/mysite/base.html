@@ -16,8 +16,7 @@
             <a href="/" class="text-2xl font-bold">Spacio Workspace</a>
             <div class="space-x-6 flex items-center">
                 <a href="/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Home</a>
-                <a href="/spaces/list/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Spaces</a>
-                <a href="/bookings/list/" class="hover:bg-indigo-700 px-3 py-2 rounded-md">Bookings</a>
+
                 {% if user.is_authenticated %}
                     <span class="font-bold hidden md:inline-block">Welcome, {{ user.first_name }}!</span>
                     <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-md">Logout</a>
