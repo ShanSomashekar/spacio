@@ -2,19 +2,26 @@ from django.http import HttpResponse
 from django.urls import reverse
 from .forms import MemberRegistrationForm
 from django.db import connection
+
 def register_view(request):
     if request.method == 'POST':
         form = MemberRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Save the form data to the database
+            member = form.save()
+
+            # Optionally, log or print the saved data for debugging
+            print(f"Member {member.first_name} {member.last_name} saved with ID: {member.id}")
+
             messages.success(request, "Registration successful! Please log in.")
             return redirect('login')
         else:
+            # If the form is invalid, print or log the errors
+            print("Form errors:", form.errors)
             messages.error(request, "Registration failed. Please check the details and try again.")
     else:
         form = MemberRegistrationForm()
     return render(request, 'members/register.html', {'form': form})
-
 
 from django.contrib import messages
 
@@ -49,20 +56,8 @@ def login_view(request):
     return render(request, 'members/login.html')
 
 
-from .models import Member
 
-
-from django.shortcuts import render, redirect
-from django.db import connection
 from .models import Member  # Ensure your Member model is imported
-
-from django.shortcuts import render, redirect
-from django.db import connection
-from datetime import datetime
-
-from django.shortcuts import render, redirect
-from django.db import connection
-from datetime import datetime
 
 def home_view(request):
     if 'user' in request.session:
